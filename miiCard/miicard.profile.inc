@@ -26,6 +26,25 @@ function miicard_profile_fields() {
   return $profile_fields;
 }
 
+function _miicard_save_profile(&$edit, $account) {
+  $result = miicard_profile_fields();
+  foreach ($result as $field_name => $field) {
+    if (isset($edit[$field_name])) {
+      $value = $edit[$field_name];
+      if (_profile_field_serialize($field['type'])) {
+        $value = serialize($edit[$field_name]);
+      }
+              
+      $sql = "UPDATE {profile_value} SET value = '%s' WHERE fid = %d AND uid = %d";
+      db_query($sql, $value, $field['fid'], $account->uid);
+      if (!db_affected_rows()) {
+        $sql = "INSERT INTO {profile_value} (value, fid, uid) VALUES ('%s', %d, %d)";
+        db_query($sql, $value, $field['fid'], $account->uid);
+      }      
+    }
+  }
+}
+
 function miicard_map_profile_form() {
   module_load_include('inc', 'miicard', 'miicard.fields');
   
@@ -104,11 +123,17 @@ function miicard_profile_create_user(&$edit, $miicard) {
   foreach ($profile_map as $profile_field_name => $miicard_property_name) {
     if (isset($profile_fields[$profile_field_name])) {
       $profile_field = $profile_fields[$profile_field_name];
+      if ($profile_field['type'] == 'date') {
+        $profile_field['type'] = 'profile_date';
+      }
       if (isset($profile_map[$profile_field_name])) {
         $profile_mapping = $profile_mapping_options[$profile_map[$profile_field_name]];
         $callback = 'miicard_field_convert_' . $profile_mapping['conversion'];
-        if ($value = $callback($profile_mapping['miicard'], $miicard, array(), array())) {
+        if ($value = $callback($profile_mapping['miicard'], $miicard, $profile_field, array())) {
           $edit[$profile_field_name] = $value['value'];
+        }
+        else {
+          $edit[$profile_field_name] = NULL;
         }
       }
     }

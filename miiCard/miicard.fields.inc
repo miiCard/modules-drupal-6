@@ -90,6 +90,9 @@ function miicard_field_create_user(&$edit, $miicard) {
       if ($value = $callback($field_mapping['miicard'], $miicard, $user_field, $instance)) {
         $edit[$field_name][LANGUAGE_NONE][0] = $value;
       }
+      else {
+        $edit[$field_name][LANGUAGE_NONE][0] = array('value' => NULL);
+      }
     }
   }
 }
@@ -117,13 +120,26 @@ function miicard_field_convert_text($miicard_property_name, $miicard, $field, $i
  */
 function miicard_field_convert_date($miicard_property_name, $miicard, $field, $instance) {
   $value = NULL;
-  $date = new DateObject($miicard->$miicard_property_name);
-  if (date_is_date($date)) {
-    $format = $field['type'] == 'datestamp' ? DATE_FORMAT_UNIX : DATE_FORMAT_ISO;
-    $value = array(
-      'value' => $date->format($format, TRUE),
-      'date_type' => $field['type'],
-    );
+  $type = isset($field['type']) ? $field['type'] : 'datetime';
+  $date = isset($miicard->data[$miicard_property_name]) ? $miicard->data[$miicard_property_name] : 0;
+  if ($date > 0) {
+    if ($type == 'profile_date') {
+      $d = getdate($date);
+      $value = array(
+        'value' => array(
+        	'year' => $d['year'], 
+        	'month' => $d['mon'], 
+        	'day' => $d['mday'],
+        ),
+      );
+    }
+    else {
+      $format = ($type == 'datestamp' ? 'U' : 'Y-m-d\TH:i:s');
+      $value = array(
+        'value' => date($format, $date),
+        'date_type' => $type,
+      );
+    }
   }
 
   return $value;
@@ -335,7 +351,7 @@ function miicard_mapping_options() {
     'previous_middle_name' => array(
       'miicard' => 'PreviousMiddleName',
       'label' => t('Previous Middle Name'),
-      'type' => 'text',
+      'conversion' => 'text',
       'field_types' => array('text', 'textfield'),
     ),
     'previous_last_name' => array(

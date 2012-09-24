@@ -200,6 +200,18 @@ class miiCard {
       if (preg_match('#/Date\((-?\d+)\d\d\d\)/#i', $data['LastVerified'], $matches)) {
         $data['LastVerified'] = intval($matches[1]);
       }
+      else {
+        $data['LastVerified'] = 0;
+      }
+
+      if (isset($data['PublicProfile'])) {
+        if (preg_match('#/Date\((-?\d+)\d\d\d\)/#i', $data['PublicProfile']['LastVerified'], $matches)) {
+          $data['PublicProfile']['LastVerified'] = intval($matches[1]);
+        }
+        else {
+          $data['PublicProfile']['LastVerified'] = 0;
+        }
+      }
 
       $this->data = $data;
       $this->url = $data['ProfileUrl'];

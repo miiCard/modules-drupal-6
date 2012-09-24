@@ -49,7 +49,11 @@ function miicard_callback() {
     $secret = variable_get('miicard_consumer_secret', '');
 
     $miicard = new miiCard($key, $secret, $token_store['oauth_token'], $token_store['oauth_token_secret']);
-    $miicard->get_access_token($verifier);    
+    $token = $miicard->get_access_token($verifier);
+    if (empty($token)) {
+      drupal_goto($redirect);
+    }
+    
     $miicard->dictionary_request();
     $account = _miicard_load_user($miicard);
     
@@ -153,5 +157,5 @@ function miicard_remove() {
     drupal_set_message(t('Could not remove miiCard identity!'), 'error');
   }
   
-  drupal_goto('user');
+  drupal_goto('user/' . $user->uid . '/edit');
 }

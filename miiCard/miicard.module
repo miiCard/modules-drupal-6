@@ -101,11 +101,9 @@ function miicard_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'insert':
       miicard_user_presave($edit, $account, $category);
-      profile_save_profile($edit, $account, $category, TRUE);
       break;
     case 'update':
       miicard_user_presave($edit, $account, $category);
-      profile_save_profile($edit, $account, $category);
       break;
     case 'delete':
       miicard_user_delete($account);
@@ -126,10 +124,11 @@ function miicard_user_delete($account) {
 function miicard_user_presave(&$edit, $account, $category) {
   $miicard = _miicard_identity_load($account);
   
-  module_load_include('inc', 'miicard', 'miicard.fields');  
   if (module_exists('profile')) {
+    module_load_include('inc', 'miicard', 'miicard.fields');  
     module_load_include('inc', 'miicard', 'miicard.profile');
     miicard_profile_create_user($edit, $miicard);
+    _miicard_save_profile($edit, $account);
   }
 }
  
@@ -214,7 +213,7 @@ function miicard_button($text = '') {
   if (empty($text)) {
     $text = miicard_sign_in_text();
   }
-  return l(t($text), 'user/login/miicard', array('attributes' => array('class' => array('miicardLoginButton'))));
+  return l(t($text), 'user/login/miicard', array('attributes' => array('class' => 'miicardLoginButton')));
 }
 
 function miicard_url($uid) {
@@ -305,6 +304,12 @@ EOSQL2;
     watchdog("miiCard", "miiCard save to database failed: %error", array("%error" => $e->getMessage()), WATCHDOG_ERROR);
   }
   
+  # Update user fields and profile fields
+  if (!$error) {
+    $account = user_load($miicard->uid);
+    user_save($account);
+  }
+  
   return !$error;
 }
 
@@ -314,8 +319,6 @@ function _miicard_identity_delete($account) {
 
   $edit = array();
   miicard_user_presave($edit, $account, $category);
-  profile_save_profile($edit, $account, $category);
-    
 }
 
 /**
@@ -488,7 +491,7 @@ function _miicard_filter_list($list, $primary = FALSE, $verified = TRUE) {
 function _miicard_validate_data(&$data, $public) {
   if (empty($data)) {
     $data = array(
-      'LastVerified' => '',
+      'LastVerified' => 0,
       'IdentityAssured' => 0,
       'HasPublicProfile' => 0,
       'PublicProfile' => array(),
