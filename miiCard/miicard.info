@@ -1,0 +1,5 @@
+name = miiCard
+description = Allows users to authenticate against the miiCard service
+package = "Authentication"
+core = 6.x
+version = "6.x-0.5"
