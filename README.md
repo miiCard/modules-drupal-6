@@ -1,7 +1,8 @@
 modules-drupal-6
 ================
 
-Drupal 6 module to enable 'sign in with miiCard' functionality and provide a basis for deeper integrations.
+Drupal 6 module to enable 'sign in with miiCard' functionality and provide a basis for deeper integrations. For more information about this and other libraries and components that interoperate with miiCard, see the [miiCard Developers](http://www.miicard.com/developers) site.
+
 
 ###What is miiCard?
 miiCard lets anybody prove their identity to the same level of traceability as using a passport, driver's licence or photo ID. We then allow external web applications to ask miiCard users to share a portion of their identity information with the application through a web-accessible API.
